@@ -1,0 +1,22 @@
+server:
+  port: 8088
+
+spring:
+  application:
+    name: "trip-service"
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/mail_campaign_system
+    username: postgres
+    password: 1234
+
+  liquibase:
+    changelog: classpath:db/changelog/db.changelog-master.xml
+    url: jdbc:postgresql://localhost:5432/mail_campaign_system
+    user: postgres
+    password: 1234
+
