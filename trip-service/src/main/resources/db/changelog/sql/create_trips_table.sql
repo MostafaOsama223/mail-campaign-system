@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS trip_service."trips" (
-    id BIGSERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description VARCHAR(255),
     start_date TIMESTAMP NOT NULL,
