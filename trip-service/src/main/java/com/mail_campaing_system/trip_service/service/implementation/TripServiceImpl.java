@@ -4,6 +4,7 @@ import com.mail_campaing_system.trip_service.dto.TripCreateRequest;
 import com.mail_campaing_system.trip_service.dto.TripCreateResponse;
 import com.mail_campaing_system.trip_service.model.Trip;
 import com.mail_campaing_system.trip_service.repo.TripRepo;
+import com.mail_campaing_system.trip_service.service.EventService;
 import com.mail_campaing_system.trip_service.service.TripService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 public class TripServiceImpl implements TripService {
 
     private final TripRepo tripRepo;
+    private final EventService eventService;
 
     @Override
     public TripCreateResponse createTrip(TripCreateRequest dto) {
@@ -26,16 +28,14 @@ public class TripServiceImpl implements TripService {
 
         tripRepo.saveAndFlush(trip);
 
-//        TODO: Implement the logic to publish TripCreatedEvent to message broker
+        eventService.sendTripCreatedEvent(trip);
 
-        TripCreateResponse response = new TripCreateResponse(
+        return new TripCreateResponse(
                 trip.getId(),
                 trip.getName(),
                 trip.getDescription(),
                 trip.getStartDate(),
                 trip.getEndDate()
         );
-
-        return response;
     }
 }

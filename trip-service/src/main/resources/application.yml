@@ -21,3 +21,13 @@ spring:
     user: postgres
     password: 1234
 
+  cloud:
+    function:
+      definition: tripEventCreated
+    stream:
+      bindings:
+        tripEventCreated-in-0:
+          destination: TripCreatedEvent-out-0
+          group: ${spring.application.name}
+        TripCreatedEvent-out-0:
+          destination: TripCreatedEvent-out-0
