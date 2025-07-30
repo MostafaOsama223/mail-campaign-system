@@ -8,6 +8,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+    show-sql: true
 
   datasource:
     url: jdbc:postgresql://localhost:5432/mail_campaign_system
