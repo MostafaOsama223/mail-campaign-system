@@ -7,5 +7,8 @@
     <changeSet id="1" author="Mostafa Osama">
         <sqlFile path="sql/create_user_contacts_table.sql" relativeToChangelogFile="true"/>
     </changeSet>
+    <changeSet id="2" author="Mostafa Osama">
+        <sqlFile path="sql/populate_user_contacts_table.sql" relativeToChangelogFile="true"/>
+    </changeSet>
 
 </databaseChangeLog>
