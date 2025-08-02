@@ -1,9 +1,9 @@
 package com.mail_campaign_system.fanout_worker.function;
 
 import com.mail_campaign_system.fanout_worker.dto.FanOutTask;
+import com.mail_campaign_system.fanout_worker.dto.GetUserContact;
 import com.mail_campaign_system.fanout_worker.dto.SendEmailEvent;
-import com.mail_campaign_system.fanout_worker.dto.UserContact;
-import com.mail_campaign_system.fanout_worker.service.client.UserService;
+import com.mail_campaign_system.fanout_worker.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,7 +23,7 @@ public class FanOutTaskFunction {
     @Bean
     public UserService userService() {
         RestClient restClient = RestClient.builder()
-                .baseUrl("http://user-service/api/v1")
+                .baseUrl("http://localhost:8095/api/v1")
                 .build();
 
         RestClientAdapter adapter = RestClientAdapter.create(restClient);
@@ -33,7 +33,7 @@ public class FanOutTaskFunction {
     }
 
     @Bean
-    public Function<Message<FanOutTask>, List<Message<SendEmailEvent>>> fanOutTaskConsumer() {
+    public Function<Message<FanOutTask>, List<Message<SendEmailEvent>>> fanOutTaskConsumer(UserService userService) {
         return fanOutTask -> {
             log.info("Processing FanOutTask: {}", fanOutTask.getPayload());
 
@@ -41,16 +41,11 @@ public class FanOutTaskFunction {
             int cursor = payload.start_user_contact_id();
             int limit = payload.end_user_contact_id() - payload.start_user_contact_id() + 1;
 
-//            TODO: Integrate with userService
-            List<UserContact> userContacts = List.of(
-                    new UserContact(1, "abc@gmail.com"),
-                    new UserContact(2, "def@gmail.com"),
-                    new UserContact(3, "ghi@gmail.com")
-            );
-            log.info("Fetched {} user contacts for FanOutTask: {}", userContacts.size(), fanOutTask.getPayload().taskId());
+            List<GetUserContact> userContacts = userService.getUserContacts(cursor, limit).contacts();
 
             List<Message<SendEmailEvent>> sendEmailEvents = userContacts.stream()
                     .map(userContact -> {
+                        log.debug("Creating SendEmailEvent for user contact: {}", userContact);
                         SendEmailEvent sendEmailEvent = new SendEmailEvent(
                                 userContact.email(),
                                 "Trip Notification",
