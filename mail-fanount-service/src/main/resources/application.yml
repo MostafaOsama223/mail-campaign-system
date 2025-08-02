@@ -1,0 +1,23 @@
+server:
+  port: 8089
+
+spring:
+  application:
+    name: mail-fanout-service
+
+  cloud:
+    function:
+      definition: tripCreatedEventConsumer
+    stream:
+      bindings:
+        tripCreatedEventConsumer-in-0:
+          destination: trips_created
+          group: ${spring.application.name}
+        tripCreatedEventConsumer-out-0:
+          destination: fanout_tasks
+
+mail:
+  fanout:
+    service:
+      batch:
+        size: 1000
