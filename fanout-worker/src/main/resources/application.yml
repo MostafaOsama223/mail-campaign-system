@@ -1,0 +1,17 @@
+server:
+  port: 8091
+
+spring:
+  application:
+    name: fanout-worker
+
+  cloud:
+    function:
+      definition: fanOutTaskConsumer
+    stream:
+      bindings:
+        fanOutTaskConsumer-in-0:
+          destination: fanout_tasks
+          group: ${spring.application.name}
+        fanOutTaskConsumer-out-0:
+          destination: mails
