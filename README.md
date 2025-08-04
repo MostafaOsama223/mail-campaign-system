@@ -27,7 +27,8 @@ docker-compose up
 ```
 
 ## System Architecture
-![img.png](img.png)
+<img width="1744" height="837" alt="image" src="https://github.com/user-attachments/assets/22573f4a-cabb-4877-b765-7fa4cc92f439" />
+
 
 ### 1. Announcement Service
 Exposes REST API for creating announcements. It publishes the announcement `announcements_created` queue  as an event `AnnouncementCreatedEvent`.
