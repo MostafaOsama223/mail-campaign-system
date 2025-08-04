@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS trip_service."trips" (
+CREATE TABLE IF NOT EXISTS announcement_service."announcements" (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description VARCHAR(255),

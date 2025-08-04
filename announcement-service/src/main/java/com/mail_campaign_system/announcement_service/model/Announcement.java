@@ -11,8 +11,8 @@ import java.sql.Timestamp;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "trips", schema = "trip_service")
-public class Trip extends BaseEntity {
+@Table(name = "announcements", schema = "announcement_service")
+public class Announcement extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

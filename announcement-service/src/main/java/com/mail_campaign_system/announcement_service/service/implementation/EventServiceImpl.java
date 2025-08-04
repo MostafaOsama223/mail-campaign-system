@@ -1,7 +1,7 @@
 package com.mail_campaign_system.announcement_service.service.implementation;
 
-import com.mail_campaign_system.announcement_service.dto.TripCreatedEvent;
-import com.mail_campaign_system.announcement_service.model.Trip;
+import com.mail_campaign_system.announcement_service.dto.AnnouncementCreatedEvent;
+import com.mail_campaign_system.announcement_service.model.Announcement;
 import com.mail_campaign_system.announcement_service.service.EventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,26 +22,18 @@ public class EventServiceImpl implements EventService {
     private final StreamBridge streamBridge;
 
     @Override
-    public void sendTripCreatedEvent(Trip trip) {
+    public void sendAnnouncementCreatedEvent(Announcement announcement) {
 
-        TripCreatedEvent event = new TripCreatedEvent(
+        AnnouncementCreatedEvent event = new AnnouncementCreatedEvent(
                 UUID.randomUUID(),
                 System.currentTimeMillis(),
                 applicationName,
-                trip.getId(),
-                trip.getName()
+                announcement.getId(),
+                announcement.getName()
         );
 
-        log.info("Publishing TripCreatedEvent: {}", event);
+        log.info("Publishing AnnouncementCreatedEvent: {}", event);
 
-        streamBridge.send("TripCreatedEvent-out-0", event);
+        streamBridge.send("AnnouncementCreatedEvent-out-0", event);
     }
-
-//    TODO: Remove this block
-//    @Bean
-//    Consumer<TripCreatedEvent> tripEventCreated() {
-//        return event -> {
-//            log.info("Received TripCreatedEvent: {}", event);
-//        };
-//    }
 }
