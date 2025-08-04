@@ -1,5 +1,5 @@
 server:
-  port: 8091
+  port: 8191
 
 spring:
   application:
@@ -13,5 +13,8 @@ spring:
         fanOutTaskConsumer-in-0:
           destination: fanout_tasks
           group: ${spring.application.name}
+          consumer:
+            concurrency: 3
+            instance-count: 3
         fanOutTaskConsumer-out-0:
           destination: mails
