@@ -7,13 +7,13 @@ spring:
 
   cloud:
     function:
-      definition: tripCreatedEventConsumer
+      definition: announcementCreatedEventConsumer
     stream:
       bindings:
-        tripCreatedEventConsumer-in-0:
-          destination: trips_created
+        announcementCreatedEventConsumer-in-0:
+          destination: announcements_created
           group: ${spring.application.name}
-        tripCreatedEventConsumer-out-0:
+        announcementCreatedEventConsumer-out-0:
           destination: fanout_tasks
 
 mail:
@@ -21,3 +21,6 @@ mail:
     service:
       batch:
         size: 1000
+
+userservice:
+  url: http://user-service:8095

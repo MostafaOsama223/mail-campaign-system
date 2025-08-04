@@ -2,7 +2,7 @@ package com.mail_campaign_system.mail_fanout_service.function;
 
 import com.mail_campaign_system.mail_fanout_service.dto.FanOutTask;
 import com.mail_campaign_system.mail_fanout_service.dto.GetUserContactStatistics;
-import com.mail_campaign_system.mail_fanout_service.dto.TripCreatedEvent;
+import com.mail_campaign_system.mail_fanout_service.dto.AnnouncementCreatedEvent;
 import com.mail_campaign_system.mail_fanout_service.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,15 +21,18 @@ import java.util.function.Function;
 
 @Slf4j
 @Configuration
-public class TripCreatedEventFanOutFunction {
+public class AnnouncementCreatedEventFanOutFunction {
 
     @Value("${mail.fanout.service.batch.size:1000}")
     private int batchSize;
 
+    @Value("${userservice.url:http://user-service:8095/api/v1}")
+    private String userServiceBaseUrl;
+
     @Bean
     public UserService userService() {
         RestClient restClient = RestClient.builder()
-                .baseUrl("http://localhost:8095/api/v1")
+                .baseUrl(userServiceBaseUrl)
                 .build();
 
         RestClientAdapter adapter = RestClientAdapter.create(restClient);
@@ -39,8 +42,8 @@ public class TripCreatedEventFanOutFunction {
     }
 
     @Bean
-    public Function<TripCreatedEvent, List<Message<FanOutTask>>> tripCreatedEventConsumer(UserService userService) {
-        return tripCreatedEvent -> {
+    public Function<AnnouncementCreatedEvent, List<Message<FanOutTask>>> announcementCreatedEventConsumer(UserService userService) {
+        return announcementCreatedEvent -> {
 
             GetUserContactStatistics userContactStatistics = userService.getUserContactStatistics();
 
@@ -48,14 +51,14 @@ public class TripCreatedEventFanOutFunction {
             int firstContactId = userContactStatistics.firstContactId();
             int numberOfBatches = (totalNumberOfUsers + batchSize - 1) / batchSize;
 
-            log.info("TripCreatedEvent received {}. Batch size: {}", tripCreatedEvent, batchSize);
+            log.info("AnnouncementCreatedEvent received {}. Batch size: {}", announcementCreatedEvent, batchSize);
 
             List<Message<FanOutTask>> fanOutTasks = new ArrayList<>(numberOfBatches);
 
             for (int i = 0; i < numberOfBatches; i++) {
                 FanOutTask fanOutTask = new FanOutTask(
                         UUID.randomUUID(),
-                        tripCreatedEvent.tripId(),
+                        announcementCreatedEvent.announcementId(),
                         i * batchSize + firstContactId,
                         Math.min((i + 1) * batchSize + firstContactId - 1, totalNumberOfUsers - 1)
                 );
