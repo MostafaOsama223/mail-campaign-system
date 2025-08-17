@@ -1,5 +1,11 @@
-FROM openjdk:17-slim
+FROM eclipse-temurin:17-jdk-jammy AS build
+WORKDIR /app
+COPY . .
+RUN chmod +x gradlew \
+ && ./gradlew --no-daemon --debug -x test bootJar
 
-COPY build/libs/announcement-service-0.0.1-SNAPSHOT.jar announcement-service.jar
 
-ENTRYPOINT ["java", "-jar", "announcement-service.jar"]
+FROM eclipse-temurin:17-jre-jammy
+WORKDIR /app
+COPY --from=build /app/build/libs/*.jar app.jar
+ENTRYPOINT ["java", "-jar", "app.jar"]

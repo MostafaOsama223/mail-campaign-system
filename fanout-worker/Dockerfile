@@ -1,5 +1,11 @@
-FROM openjdk:17-slim
+FROM eclipse-temurin:17-jdk-jammy AS build
+WORKDIR /app
+COPY . .
+RUN chmod +x gradlew
+RUN ./gradlew --no-daemon --debug -x test bootJar
 
-COPY build/libs/fanout-worker-0.0.1-SNAPSHOT.jar fanout-worker.jar
 
-ENTRYPOINT ["java", "-jar", "fanout-worker.jar"]
+FROM eclipse-temurin:17-jre-jammy
+WORKDIR /app
+COPY --from=build /app/build/libs/*.jar app.jar
+ENTRYPOINT ["java", "-jar", "app.jar"]
