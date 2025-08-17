@@ -1,0 +1,37 @@
+server:
+  port: 9095
+
+app:
+  mail:
+    dlq-cycles-before-park: 3
+
+spring:
+  application:
+    name: mail-service
+
+  cloud:
+    function:
+      definition: mailConsumer
+
+    stream:
+      rabbit:
+        bindings:
+          mailConsumer-in-0:
+            consumer:
+              auto-bind-dlq: true
+              republish-to-dlq: true
+              dlq-ttl: 20000
+              dlq-dead-letter-exchange: ""
+              dlq-dead-letter-routing-key: "mails.${spring.application.name}"
+
+      bindings:
+        mailConsumer-in-0:
+          destination: mails
+          group: ${spring.application.name}
+          consumer:
+            max-attempts: 1
+
+        parkingLot-out-0:
+          destination: parking-lot
+          producer:
+            required-groups: ${spring.application.name}
