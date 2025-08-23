@@ -47,13 +47,20 @@ public class FanOutTaskFunction {
                     .map(userContact -> {
                         log.debug("Creating SendEmailEvent for user contact: {}", userContact);
                         SendEmailEvent sendEmailEvent = new SendEmailEvent(
+                                payload.taskId(),
+                                userContact.id(),
                                 userContact.email(),
                                 "Trip Notification",
                                 "Dear User, you have a new trip notification."
                         );
-                        return MessageBuilder.withPayload(sendEmailEvent).build();
+
+                        String partitionKey = payload.tripId() + "-" + userContact.id();
+                        return MessageBuilder
+                                .withPayload(sendEmailEvent)
+                                .setHeader("partitionKey", partitionKey)
+                                .build();
                     }).toList();
-            log.info("Created {} SendEmailEvents for FanOutTask: {}", sendEmailEvents.size(), fanOutTask.getPayload().taskId());
+            log.info("Created {} SendEmailEvents for FanOutTask: {}", sendEmailEvents.size(), payload.taskId());
 
             return sendEmailEvents;
         };

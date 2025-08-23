@@ -16,5 +16,12 @@ spring:
           consumer:
             concurrency: 3
             instance-count: 3
+
         fanOutTaskConsumer-out-0:
           destination: mails
+# TODO: Work on partitioning
+#          producer:
+#            partition-key-expression: headers['partitionKey']
+#            partition-count: 8
+#            required-groups:
+#              - mail-service
