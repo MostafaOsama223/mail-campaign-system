@@ -1,0 +1,48 @@
+server:
+  port: 8099
+
+spring:
+  application:
+    name: analytics-service
+
+  rabbitmq:
+    host: localhost
+    listener:
+      type: STREAM
+
+    stream:
+      port: 5552
+      username: guest
+      password: guest
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/mail_campaign_system
+    username: postgres
+    password: 1234
+
+  liquibase:
+    changelog: classpath:db/changelog/db.changelog-master.xml
+    url: jdbc:postgresql://localhost:5432/mail_campaign_system
+    user: postgres
+    password: 1234
+
+  cloud:
+    function:
+      definition: mailsOutcomes
+
+    stream:
+      rabbit:
+        bindings:
+          mailsOutcomes-in-0:
+            consumer:
+              container-type: STREAM
+
+      bindings:
+        mailsOutcomes-in-0:
+          destination: mails_outcomes
+          group: ${spring.application.name}
