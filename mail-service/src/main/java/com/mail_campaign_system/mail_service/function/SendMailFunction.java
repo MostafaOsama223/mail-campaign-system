@@ -1,6 +1,8 @@
 package com.mail_campaign_system.mail_service.function;
 
+import com.mail_campaign_system.mail_service.dto.MailOutcomeMessage;
 import com.mail_campaign_system.mail_service.dto.SendEmailEvent;
+import com.mail_campaign_system.mail_service.dto.Statuses;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.ImmediateAcknowledgeAmqpException;
@@ -26,12 +28,21 @@ public class SendMailFunction {
     @Value("${app.mail.dlq-cycles-before-park}")
     private long DLQ_CYCLES_BEFORE_PARK;
 
+//    TODO: Refactor this method
     @Bean
     public Consumer<Message<SendEmailEvent>> mailConsumer(StreamBridge streamBridge) {
         return message -> {
             SendEmailEvent sendEmailEvent = message.getPayload();
 
-            if (sendEmailEvent.email().equals("user-00b085fa-573b-4c3c-90b9-fd4b4188c19d@eg.com")) {
+            log.info(
+                    "---- Processing message from queue: {} ----\n"
+                            + "Message Headers: {}\n"
+                            + "Message Payload: {}",
+                    ORIGINAL_QUEUE,
+                    message.getHeaders(),
+                    sendEmailEvent);
+
+            if (sendEmailEvent.userEmail().equals("user-00b085fa-573b-4c3c-90b9-fd4b4188c19d@eg.com")) {
 
                 long dlqCycles = extractDlqCycles(message.getHeaders());
 
@@ -47,11 +58,43 @@ public class SendMailFunction {
                                     .build()
                     );
 
+                    streamBridge.send(
+                            "mailOutcome-out-0",
+                            MessageBuilder.withPayload(
+                                            new MailOutcomeMessage(
+                                                    sendEmailEvent.campaignId(),
+                                                    sendEmailEvent.userId(),
+                                                    sendEmailEvent.userEmail(),
+                                                    Statuses.FAILED,
+                                                    0, // latencyMs is not calculated here
+                                                    (int) dlqCycles + 1
+                                            )
+                                    )
+                                    .copyHeadersIfAbsent(message.getHeaders())
+                                    .build()
+                    );
+
                     throw new ImmediateAcknowledgeAmqpException("Parked after all DLQ cycles");
                 }
 
                 throw new AmqpRejectAndDontRequeueException("Simulated failure for testing purposes, message will be sent to DLQ");
             }
+
+            streamBridge.send(
+                    "mailOutcome-out-0",
+                    MessageBuilder.withPayload(
+                                    new MailOutcomeMessage(
+                                            sendEmailEvent.campaignId(),
+                                            sendEmailEvent.userId(),
+                                            sendEmailEvent.userEmail(),
+                                            Statuses.SUCCESS,
+                                            0, // latencyMs is not calculated here
+                                            1 // attemptNo is set to 1 for successful sends
+                                    )
+                            )
+                            .copyHeadersIfAbsent(message.getHeaders())
+                            .build()
+            );
         };
     }
 

@@ -2,11 +2,12 @@ package com.mail_campaign_system.mail_service.dto;
 
 import java.util.UUID;
 
-public record SendEmailEvent(
+public record MailOutcomeMessage(
         UUID campaignId,
         int userId,
         String userEmail,
-        String subject,
-        String body
+        Statuses status,
+        int latencyMs,
+        int attemptNo
 ) {
 }

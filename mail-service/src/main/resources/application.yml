@@ -28,10 +28,15 @@ spring:
         mailConsumer-in-0:
           destination: mails
           group: ${spring.application.name}
-          consumer:
-            max-attempts: 1
+#          consumer:
+#            partitioned: true
+#            instance-count: 2
 
         parkingLot-out-0:
           destination: parking-lot
           producer:
             required-groups: ${spring.application.name}
+
+        mailOutcome-out-0:
+          destination: mails_outcomes
+          group: "analytics-service"
