@@ -23,14 +23,14 @@ spring:
               dlq-ttl: 20000
               dlq-dead-letter-exchange: ""
               dlq-dead-letter-routing-key: "mails.${spring.application.name}"
+              prefetch: ${CONSUMER_PREFETCH:200}
 
       bindings:
         mailConsumer-in-0:
           destination: mails
           group: ${spring.application.name}
-#          consumer:
-#            partitioned: true
-#            instance-count: 2
+          consumer:
+            concurrency: ${CONSUMER_CONCURRENCY:1}
 
         parkingLot-out-0:
           destination: parking-lot

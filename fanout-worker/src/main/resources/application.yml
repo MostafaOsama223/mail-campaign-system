@@ -9,12 +9,18 @@ spring:
     function:
       definition: fanOutTaskConsumer
     stream:
+      rabbit:
+        bindings:
+          fanOutTaskConsumer-in-0:
+            consumer:
+              prefetch: ${CONSUMER_PREFETCH:50}
+
       bindings:
         fanOutTaskConsumer-in-0:
           destination: fanout_tasks
           group: ${spring.application.name}
           consumer:
-            concurrency: 3
+            concurrency: ${CONSUMER_CONCURRENCY:1}
             instance-count: 3
 
         fanOutTaskConsumer-out-0:
