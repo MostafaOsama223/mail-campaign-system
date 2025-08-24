@@ -1,0 +1,30 @@
+services:
+  database-common:
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - custom_network
+
+  rabbitmq-connection-common:
+    environment:
+      SPRING_RABBITMQ_HOST: mail-campaign-system-rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+
+  service-common:
+    extends:
+      service: rabbitmq-connection-common
+    environment:
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_LIQUIBASE_USER: root
+      SPRING_LIQUIBASE_PASSWORD: postgres
+    networks:
+      - custom_network

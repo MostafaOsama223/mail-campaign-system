@@ -1,62 +1,94 @@
 services:
   announcement-service-db:
     image: postgres:14-alpine
-    restart: always
     container_name: announcement-service-db
-    environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: announcement_service_db
-    ports:
-      - "5432:5432"
+    extends:
+      service: database-common
+      file: common-config.yml
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "root", "-d", "announcement_service_db" ]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    networks:
-      - custom_network
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: announcement_service_db
+    volumes:
+      - announcement-service-db-data:/var/lib/postgresql/data
 
   user-service-db:
     image: postgres:14-alpine
-    restart: always
     container_name: user-service-db
-    environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: user_service_db
-    ports:
-      - "5434:5432"
+    extends:
+      service: database-common
+      file: common-config.yml
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "root", "-d", "user_service_db" ]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    networks:
-      - custom_network
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: user_service_db
+    volumes:
+      - user-service-db-data:/var/lib/postgresql/data
+
+  mail-service-db:
+    image: postgres:14-alpine
+    container_name: mail-service-db
+    extends:
+      service: database-common
+      file: common-config.yml
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "root", "-d", "mail_service_db" ]
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: mail_service_db
+    volumes:
+      - mail-service-db-data:/var/lib/postgresql/data
+
+  analytics-service-db:
+    image: postgres:14-alpine
+    container_name: analytics-service-db
+    extends:
+      service: database-common
+      file: common-config.yml
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "root", "-d", "analytics_service_db" ]
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_DB: analytics_service_db
+    volumes:
+      - analytics-service-db-data:/var/lib/postgresql/data
 
   mail-campaign-system-rabbitmq:
-    image: rabbitmq:3.13-management
+    image: rabbitmq:3.13-management-alpine
     restart: always
     container_name: mail-campaign-system-rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
+      - "5552:5552"
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbitmq_stream advertised_host localhost"
     healthcheck:
       test: [ "CMD", "rabbitmqctl", "status" ]
       interval: 30s
       timeout: 10s
       retries: 5
+    configs:
+      - source: rabbitmq-plugins
+        target: /etc/rabbitmq/enabled_plugins
     networks:
       - custom_network
 
   announcement-service:
-    image: announcement-service:latest
+    image: mostafaosama/announcement-service:latest
     restart: always
     container_name: announcement-service
+    extends:
+      service: service-common
+      file: common-config.yml
     ports:
       - "8090:8090"
     build:
@@ -65,27 +97,20 @@ services:
     environment:
       SERVER_PORT: 8090
       SPRING_DATASOURCE_URL: jdbc:postgresql://announcement-service-db:5432/announcement_service_db
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_LIQUIBASE_URL: jdbc:postgresql://announcement-service-db:5432/announcement_service_db
-      SPRING_LIQUIBASE_USER: root
-      SPRING_LIQUIBASE_PASSWORD: postgres
-      SPRING_RABBITMQ_HOST: mail-campaign-system-rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
-      SPRING_RABBITMQ_USERNAME: guest
-      SPRING_RABBITMQ_PASSWORD: guest
     depends_on:
       announcement-service-db:
         condition: service_healthy
       mail-campaign-system-rabbitmq:
         condition: service_healthy
-    networks:
-      - custom_network
 
   user-service:
-    image: user-service:latest
+    image: mostafaosama/user-service:latest
     restart: always
     container_name: user-service
+    extends:
+      service: service-common
+      file: common-config.yml
     ports:
       - "8095:8095"
     build:
@@ -93,29 +118,22 @@ services:
       dockerfile: Dockerfile
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://user-service-db:5432/user_service_db
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_LIQUIBASE_URL: jdbc:postgresql://user-service-db:5432/user_service_db
-      SPRING_LIQUIBASE_USER: root
-      SPRING_LIQUIBASE_PASSWORD: postgres
     depends_on:
       user-service-db:
         condition: service_healthy
-    networks:
-      - custom_network
 
   mail-fanout-service:
-    image: mail-fanout-service:latest
+    image: mostafaosama/mail-fanout-service:latest
     restart: always
     container_name: mail-fanout-service
+    extends:
+      service: rabbitmq-connection-common
+      file: common-config.yml
     build:
       context: ./mail-fanount-service
       dockerfile: Dockerfile
     environment:
-      SPRING_RABBITMQ_HOST: mail-campaign-system-rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
-      SPRING_RABBITMQ_USERNAME: guest
-      SPRING_RABBITMQ_PASSWORD: guest
       USERSERVICE_URL: http://user-service:8095
     depends_on:
       mail-campaign-system-rabbitmq:
@@ -124,17 +142,15 @@ services:
       - custom_network
 
   fanout-worker:
-    image: fanout-worker:latest
+    image: mostafaosama/fanout-worker:latest
     restart: always
-    deploy:
-      mode: replicated
-      replicas: 2
-      endpoint_mode: vip
+    container_name: fanout-worker
+    extends:
+      service: rabbitmq-connection-common
+      file: common-config.yml
     environment:
-      SPRING_RABBITMQ_HOST: mail-campaign-system-rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
-      SPRING_RABBITMQ_USERNAME: guest
-      SPRING_RABBITMQ_PASSWORD: guest
+      CONSUMER_PREFETCH: 50
+      CONSUMER_CONCURRENCY: 3
     build:
       context: ./fanout-worker
       dockerfile: Dockerfile
@@ -143,6 +159,47 @@ services:
         condition: service_healthy
     networks:
       - custom_network
+
+  mail-service:
+    image: mostafaosama/mail-service:latest
+    container_name: mail-service
+    restart: always
+    extends:
+      service: rabbitmq-connection-common
+      file: common-config.yml
+    environment:
+      CONSUMER_PREFETCH: 200
+      CONSUMER_CONCURRENCY: 6
+    build:
+      context: ./mail-service
+      dockerfile: Dockerfile
+    depends_on:
+      mail-campaign-system-rabbitmq:
+        condition: service_healthy
+    networks:
+      - custom_network
+
+  analytics-service:
+    image: mostafaosama/analytics-service:latest
+    restart: always
+    container_name: analytics-service
+    extends:
+      service: service-common
+      file: common-config.yml
+    ports:
+      - "8099:8099"
+    build:
+      context: ./analytics-service
+      dockerfile: Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://analytics-service-db:5432/analytics_service_db
+      SPRING_LIQUIBASE_URL: jdbc:postgresql://analytics-service-db:5432/analytics_service_db
+      SPRING_RABBITMQ_STREAM_PORT: 5552
+      SPRING_RABBITMQ_STREAM_USERNAME: guest
+      SPRING_RABBITMQ_STREAM_PASSWORD: guest
+    depends_on:
+      analytics-service-db:
+        condition: service_healthy
 
   pg-admin:
     image: dpage/pgadmin4
@@ -156,7 +213,16 @@ services:
     networks:
       - custom_network
 
-
 networks:
   custom_network:
     driver: bridge
+
+volumes:
+  announcement-service-db-data:
+  user-service-db-data:
+  mail-service-db-data:
+  analytics-service-db-data:
+
+configs:
+  rabbitmq-plugins:
+    content: "[rabbitmq_management,rabbitmq_stream]."
