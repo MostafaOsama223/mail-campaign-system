@@ -70,7 +70,6 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
-      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbitmq_stream advertised_host localhost"
     healthcheck:
       test: [ "CMD", "rabbitmqctl", "status" ]
       interval: 30s
@@ -194,9 +193,7 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://analytics-service-db:5432/analytics_service_db
       SPRING_LIQUIBASE_URL: jdbc:postgresql://analytics-service-db:5432/analytics_service_db
-      SPRING_RABBITMQ_STREAM_PORT: 5552
-      SPRING_RABBITMQ_STREAM_USERNAME: guest
-      SPRING_RABBITMQ_STREAM_PASSWORD: guest
+      SPRING_RABBITMQ_STREAM_HOST: mail-campaign-system-rabbitmq
     depends_on:
       analytics-service-db:
         condition: service_healthy
