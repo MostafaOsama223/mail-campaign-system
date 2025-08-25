@@ -20,7 +20,7 @@ mail:
   fanout:
     service:
       batch:
-        size: 1000
+        size: ${MAIL_BATCH_SIZE:1000}
 
 userservice:
-  url: http://user-service:8095
+  url: ${USERSERVICE_URL:http://user-service:8095}

@@ -6,19 +6,16 @@ spring:
     name: analytics-service
 
   rabbitmq:
-    host: localhost
     listener:
       type: STREAM
 
     stream:
       port: 5552
-      username: guest
-      password: guest
 
   jpa:
     hibernate:
       ddl-auto: none
-    show-sql: true
+    show-sql: ${SHOW_SQL:false}
 
   datasource:
     url: jdbc:postgresql://localhost:5432/mail_campaign_system
@@ -46,3 +43,5 @@ spring:
         mailsOutcomes-in-0:
           destination: mails_outcomes
           group: ${spring.application.name}
+          consumer:
+            concurrency: ${CONSUMER_CONCURRENCY:1}

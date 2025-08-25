@@ -134,6 +134,7 @@ services:
       dockerfile: Dockerfile
     environment:
       USERSERVICE_URL: http://user-service:8095
+      MAIL_BATCH_SIZE: 1000
     depends_on:
       mail-campaign-system-rabbitmq:
         condition: service_healthy
@@ -194,6 +195,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://analytics-service-db:5432/analytics_service_db
       SPRING_LIQUIBASE_URL: jdbc:postgresql://analytics-service-db:5432/analytics_service_db
       SPRING_RABBITMQ_STREAM_HOST: mail-campaign-system-rabbitmq
+      CONSUMER_CONCURRENCY: 3
     depends_on:
       analytics-service-db:
         condition: service_healthy
