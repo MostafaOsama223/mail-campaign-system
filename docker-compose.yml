@@ -91,8 +91,10 @@ services:
     ports:
       - "8090:8090"
     build:
-      context: ./announcement-service
+      context: .
       dockerfile: Dockerfile
+      args:
+        - SERVICE_NAME=announcement-service
     environment:
       SERVER_PORT: 8090
       SPRING_DATASOURCE_URL: jdbc:postgresql://announcement-service-db:5432/announcement_service_db
@@ -113,8 +115,10 @@ services:
     ports:
       - "8095:8095"
     build:
-      context: ./user-service
+      context: .
       dockerfile: Dockerfile
+      args:
+        - SERVICE_NAME=user-service
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://user-service-db:5432/user_service_db
       SPRING_LIQUIBASE_URL: jdbc:postgresql://user-service-db:5432/user_service_db
@@ -129,10 +133,15 @@ services:
     extends:
       service: rabbitmq-connection-common
       file: common-config.yml
+    ports:
+      - "8092:8092"
     build:
-      context: ./mail-fanount-service
+      context: .
       dockerfile: Dockerfile
+      args:
+        - SERVICE_NAME=mail-fanout-service
     environment:
+      SERVER_PORT: 8092
       USERSERVICE_URL: http://user-service:8095
       MAIL_BATCH_SIZE: 1000
     depends_on:
@@ -152,8 +161,10 @@ services:
       CONSUMER_PREFETCH: 50
       CONSUMER_CONCURRENCY: 3
     build:
-      context: ./fanout-worker
+      context: .
       dockerfile: Dockerfile
+      args:
+        - SERVICE_NAME=fanout-worker
     depends_on:
       mail-campaign-system-rabbitmq:
         condition: service_healthy
@@ -171,8 +182,10 @@ services:
       CONSUMER_PREFETCH: 200
       CONSUMER_CONCURRENCY: 6
     build:
-      context: ./mail-service
+      context: .
       dockerfile: Dockerfile
+      args:
+        - SERVICE_NAME=mail-service
     depends_on:
       mail-campaign-system-rabbitmq:
         condition: service_healthy
@@ -189,8 +202,10 @@ services:
     ports:
       - "8099:8099"
     build:
-      context: ./analytics-service
+      context: .
       dockerfile: Dockerfile
+      args:
+        - SERVICE_NAME=analytics-service
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://analytics-service-db:5432/analytics_service_db
       SPRING_LIQUIBASE_URL: jdbc:postgresql://analytics-service-db:5432/analytics_service_db
