@@ -1,6 +1,5 @@
 services:
   announcement-service-db:
-    image: postgres:14-alpine
     container_name: announcement-service-db
     extends:
       service: database-common
@@ -15,7 +14,6 @@ services:
       - announcement-service-db-data:/var/lib/postgresql/data
 
   user-service-db:
-    image: postgres:14-alpine
     container_name: user-service-db
     extends:
       service: database-common
@@ -30,7 +28,6 @@ services:
       - user-service-db-data:/var/lib/postgresql/data
 
   mail-service-db:
-    image: postgres:14-alpine
     container_name: mail-service-db
     extends:
       service: database-common
@@ -45,7 +42,6 @@ services:
       - mail-service-db-data:/var/lib/postgresql/data
 
   analytics-service-db:
-    image: postgres:14-alpine
     container_name: analytics-service-db
     extends:
       service: database-common
