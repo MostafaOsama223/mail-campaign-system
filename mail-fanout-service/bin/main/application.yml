@@ -1,0 +1,26 @@
+server:
+  port: 8089
+
+spring:
+  application:
+    name: mail-fanout-service
+
+  cloud:
+    function:
+      definition: announcementCreatedEventConsumer
+    stream:
+      bindings:
+        announcementCreatedEventConsumer-in-0:
+          destination: announcements_created
+          group: ${spring.application.name}
+        announcementCreatedEventConsumer-out-0:
+          destination: fanout_tasks
+
+mail:
+  fanout:
+    service:
+      batch:
+        size: ${MAIL_BATCH_SIZE:1000}
+
+userservice:
+  url: ${USERSERVICE_URL:http://user-service:8095}
